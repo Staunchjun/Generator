@@ -1,5 +1,4 @@
-from resolution import Resolution
-from init_conf import init_resolution
+from resolution import Resolution, init_resolution
 from common import mm_to_resolution, singleton
 
 

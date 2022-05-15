@@ -35,7 +35,7 @@ def mm_to_resolution(mm: float, resolution: float, opt: DecimalRoundingRule = De
     return math.floor(ret)
 
 
-def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [int, int, DecimalRoundingRule]:
+def cal_ratio_and_mod_bak(ceil_num: int, floor_num: int) -> [int, int, DecimalRoundingRule]:
     # 记录占多数的一方
     rule: DecimalRoundingRule
     if floor_num > ceil_num:
@@ -47,6 +47,89 @@ def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [int, int, DecimalRoundi
         mod = ceil_num % floor_num
         rule = DecimalRoundingRule.CEIL
     return ratio, mod, rule
+
+
+class GroupInfo:
+    rule: DecimalRoundingRule
+    ratio_a: int
+    mod_a: int
+    ratio_b: int
+    mod_b: int
+    group_num: int
+
+
+def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [GroupInfo]:
+    # 设定计算的临时变量
+    high_num: int
+    low_num: int
+    # 记录占多数的一方
+    rule: DecimalRoundingRule
+    if floor_num > ceil_num:
+        high_num = floor_num
+        low_num = ceil_num
+        rule = DecimalRoundingRule.FLOOR
+    else:
+        high_num = ceil_num
+        low_num = floor_num
+        rule = DecimalRoundingRule.CEIL
+
+    ratio = round(high_num / low_num, 1)
+    # 计算小数点后一位
+    after_point = ratio - int(ratio)
+    after_point = int(10 * round(after_point, 1))
+    # 四舍五入
+    if 1 <= after_point <= 2:
+        ratio = int(ratio)
+        after_point = 0
+    elif 3 <= after_point <= 4:
+        ratio = int(ratio)
+        after_point = 5
+    elif 6 <= after_point <= 7:
+        ratio = int(ratio)
+        after_point = 5
+    elif 8 <= after_point <= 9:
+        ratio = int(ratio) + 1
+        after_point = 0
+
+    if after_point != 5 and after_point != 0:
+        raise Exception("数值计算错误，致命异常，非0.5的倍数")
+
+    # 计算a/b比例
+    ratio_a: int = 0
+    ratio_b: int = 0
+    # 如果后面为 0 ，则表示为x：1
+    if after_point == 0:
+        ratio_a = ratio
+        ratio_b = 1
+    #  如果后面不为 0 ，为 5，则表示是 x.5:1=>x:2
+    elif after_point == 5:
+        ratio_a = ratio * 2
+        ratio_b = 2
+
+    # 开始计算按照比例分配余多少出来, 可以分多少组
+    cnt_high: int = 0
+    cnt_low: int = 0
+    group: int = 0
+
+    #   计算分组数目，计算余数
+    while cnt_high <= high_num and cnt_low <= low_num:
+        cnt_high = cnt_high + ratio_a
+        cnt_low = cnt_low + ratio_b
+        group += 1
+
+    # 多加的减回去
+    cnt_high = cnt_high - ratio_a
+    cnt_low = cnt_low - ratio_b
+    group -= 1
+
+    group_info = GroupInfo()
+    group_info.group_num = int(group)
+    group_info.mod_a = int(high_num - cnt_high)
+    group_info.mod_b = int(low_num - cnt_low)
+    group_info.ratio_a = int(ratio_a)
+    group_info.ratio_b = int(ratio_b)
+    group_info.rule = rule
+    return group_info
 
 
 def singleton(cls_object):

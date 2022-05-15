@@ -1,4 +1,16 @@
 from common import singleton
+from functools import wraps
+
+
+def init_resolution(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not kwargs.get('resolution'):
+            # todo load resolution conf
+            kwargs['resolution'] = Resolution(1451.43, 1441.12)
+        f(*args, **kwargs)
+
+    return decorated
 
 
 @singleton
@@ -23,5 +35,3 @@ class Resolution:
         print("======Print resolution var:======")
         print("x: ", self._x)
         print("y: ", self._y)
-
-

@@ -4,10 +4,21 @@ import cv2
 import numpy as np
 import sympy
 
-from resolution import Resolution
-from common import mm_to_resolution, singleton, DecimalRoundingRule, cal_ratio_and_mod
+from resolution import Resolution, init_resolution
+from common import mm_to_resolution, singleton, DecimalRoundingRule, cal_ratio_and_mod, GroupInfo
 from window import Window
-from init_conf import init_window, init_resolution
+from functools import wraps
+
+
+def init_window(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not kwargs.get('window'):
+            # todo load window conf
+            kwargs['window'] = Window(0.72, 0.41)
+        f(*args, **kwargs)
+
+    return decorated
 
 
 @singleton
@@ -127,107 +138,139 @@ class Graph:
         self._window.__str__()
 
     def write_base_graph(self):
-        image = np.zeros((self.get_x_resolution(), self.get_y_resolution(), 1), np.uint8)
+        # np.zeros行列
+        image = np.zeros((self.get_y_resolution(), self.get_x_resolution(), 1), np.uint8)
         x_floor_num, x_floor_var, x_ceil_num, x_ceil_var = self.window_distribute_x()
         y_floor_num, y_floor_var, y_ceil_num, y_ceil_var = self.window_distribute_y()
+
+        group_info_x: GroupInfo = cal_ratio_and_mod(x_ceil_num, x_floor_num)
+        group_info_y: GroupInfo = cal_ratio_and_mod(y_ceil_num, y_floor_num)
+        self.print_group_info(group_info_x)
+        self.print_group_info(group_info_y)
+
+        # 设定计算的临时变量
+        high_num_y, high_var_y, low_num_y, low_var_y = self.set_cal_num(group_info_y, y_ceil_num, y_floor_num,
+                                                                        y_ceil_var, y_floor_var)
+        high_num_x, high_var_x, low_num_x, low_var_x = self.set_cal_num(group_info_x, x_ceil_num, x_floor_num,
+                                                                        x_ceil_var, x_floor_var)
+
+        # 如果ratio_b为2则表示 ratio a 需要 拆分了
+        # 公式为 |x-y| = 1, x+y=ratio_a
 
         start_x = 0
         start_y = 0
         end_x = self._window.get_x_resolution()
         end_y = self._window.get_y_resolution()
+        for _ in range(group_info_y.group_num):
+            #  group 内循环
+            #  等于2表示需要拆分a，不等于2则表示不需要拆分
+            if group_info_y.ratio_b == 2:
+                x_1 = int(math.ceil(group_info_y.ratio_a / 2))
+                y_1 = int(group_info_y.ratio_a - x_1)
+                for _ in range(x_1):
+                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    start_y = start_y + high_var_y
+                    end_y = end_y + high_var_y
+                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                start_y = start_y + low_var_y
+                end_y = end_y + low_var_y
+                for _ in range(y_1):
+                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    start_y = start_y + high_var_y
+                    end_y = end_y + high_var_y
+                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                start_y = start_y + low_var_y
+                end_y = end_y + low_var_y
+            else:
+                for _ in range(group_info_y.ratio_a):
+                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    start_y = start_y + high_var_y
+                    end_y = end_y + high_var_y
+                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                start_y = start_y + low_var_y
+                end_y = end_y + low_var_y
+        for _ in range(group_info_y.mod_a):
+            self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+            start_y = start_y + high_var_y
+            end_y = end_y + high_var_y
+        for _ in range(group_info_y.mod_b):
+            self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+            start_y = start_y + low_var_y
+            end_y = end_y + low_var_y
 
-        x_ratio, x_mod, x_flag = cal_ratio_and_mod(x_ceil_num, x_floor_num)
-        y_ratio, y_mod, y_flag = cal_ratio_and_mod(y_ceil_num, y_floor_num)
-
-        group_x: int = (x_floor_num + x_ceil_num - x_mod) / (x_ratio + 1)
-        group_y: int = (y_floor_num + y_ceil_num - y_mod) / (y_ratio + 1)
-
-        if y_flag == DecimalRoundingRule.FLOOR:
-            for _ in range(group_y):
-                for _ in range(y_ratio):
-                    #  restore
-                    start_y = 0
-                    end_y = self._window.get_y_resolution()
-
-                    self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                                    x_ratio)
-
-                    # 如果floor比较多,先插入floor，再插入ceil.以ceil为基数
-                    start_x = start_x + y_ceil_var
-                    end_x = end_x + y_ceil_var
-                # 补足最后一个 为 floor的，前面多加，这里要减去
-                self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                                x_ratio)
-                start_x = start_x + y_floor_var
-                end_x = end_x + y_floor_var
-
-            for _ in range(y_mod):
-                self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                                x_ratio)
-                start_x = start_x + y_floor_var
-                end_x = end_x + y_floor_var
-
-        if y_flag == DecimalRoundingRule.CEIL:
-            for _ in range(group_y):
-                for _ in range(y_ratio):
-                    #  restore
-                    start_y = 0
-                    end_y = self._window.get_y_resolution()
-
-                    self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var,
-                                    x_mod,
-                                    x_ratio)
-
-                    # 如果ceil比较多,先插入ceil，再插入floor.以floor为基数
-                    start_x = start_x + y_floor_var
-                    end_x = end_x + y_floor_var
-                # 补足最后一个 为 floor的，前面多加，这里要减去
-                self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                                x_ratio)
-                start_x = start_x + y_ceil_var
-                end_x = end_x + y_ceil_var
-
-            for _ in range(y_mod):
-                self.draw_y_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                                x_ratio)
-                start_x = start_x + y_ceil_var
-                end_x = end_x + y_ceil_var
+        # 补充最后多减去的一列
+        self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
         cv2.imwrite("base_pic.bmp", image)
 
-    def draw_y_dir(self, end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag, x_floor_var, x_mod,
-                   x_ratio):
-        # 如果ceil比较多,先插入ceil，再插入floor
-        if x_flag == DecimalRoundingRule.CEIL:
-            for _ in range(group_x):
-                for _ in range(x_ratio):
+    def draw_y(self, end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y):
+        #  restore
+        start_x = 0
+        end_x = self._window.get_x_resolution()
+        #  group 内循环
+        for _ in range(group_info_x.group_num):
+            if group_info_x.ratio_b == 2:
+                x = int(math.ceil(group_info_x.ratio_a / 2))
+                y = int(group_info_x.ratio_a - x)
+                for _ in range(x):
+                    print((start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
                     cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
-                    start_y = start_y + x_floor_var
-                    end_y = end_y + x_floor_var
-                # 补足最后一个 为 floor的，前面多加，这里要减去
+                    start_x = start_x + high_var_x
+                    end_x = end_x + high_var_x
                 cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
-                start_y = start_y + x_ceil_var
-                end_y = end_y + x_ceil_var
-
-            for _ in range(x_mod):
-                cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
-                start_y = start_y + x_ceil_var
-                end_y = end_y + x_ceil_var
-        # 如果floor比较多,先插入floor，再插入ceil.以floor为基数
-        if x_flag == DecimalRoundingRule.FLOOR:
-            # 假设：10b 5a。
-            # 按比例2：1
-            # 插入：bba，bba
-            for _ in range(group_x):
-                for _ in range(x_ratio):
+                start_x = start_x + low_var_x
+                end_x = end_x + low_var_x
+                for _ in range(y):
                     cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
-                    start_y = start_y + x_ceil_var
-                    end_y = end_y + x_ceil_var
-                # 补足最后一个 为 floor的，前面多加，这里要减去
+                    start_x = start_x + high_var_x
+                    end_x = end_x + high_var_x
                 cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
-                start_y = start_y + x_floor_var
-                end_y = end_y + x_floor_var
+                start_x = start_x + low_var_x
+                end_x = end_x + low_var_x
+            else:
+                for _ in range(group_info_x.ratio_a):
+                    cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
+                    start_x = start_x + high_var_x
+                    end_x = end_x + high_var_x
+                cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
+                start_x = start_x + low_var_x
+                end_x = end_x + low_var_x
+        # group 外补充mod
+        for _ in range(group_info_x.mod_a):
+            cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
+            start_x = start_x + high_var_x
+            end_x = end_x + high_var_x
+        for _ in range(group_info_x.mod_b):
+            cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
+            start_x = start_x + low_var_x
+            end_x = end_x + low_var_x
 
-            for _ in range(x_mod):
-                cv2.rectangle(image, (start_x, start_y - 1), (end_x, end_y - 1), (255, 255, 255), -1)
-                start_y = start_y + x_floor_var
-                end_y = end_y + x_floor_var
+        # 补充最后多减去的一列
+        cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
+
+    def print_group_info(self, group_info_x):
+        print("总共多少组")
+        print(group_info_x.group_num)
+        print("a的比例")
+        print(group_info_x.ratio_a)
+        print("a的余数")
+        print(group_info_x.mod_a)
+        print("b的比例")
+        print(group_info_x.ratio_b)
+        print("b的余数")
+        print(group_info_x.mod_b)
+        print("规则")
+        print(group_info_x.rule)
+
+    def set_cal_num(self, group_info: GroupInfo, ceil_num: int, floor_num: int, ceil_var: int, floor_var: int) -> [int,                                                                                         int]:
+        if group_info.rule == DecimalRoundingRule.FLOOR:
+            high_num = floor_num
+            high_var = floor_var
+            low_num = ceil_num
+            low_var = ceil_var
+            return high_num, high_var, low_num, low_var
+        if group_info.rule == DecimalRoundingRule.CEIL:
+            high_num = ceil_num
+            high_var = ceil_var
+            low_num = floor_num
+            low_var = floor_var
+            return high_num, high_var, low_num, low_var
