@@ -25,28 +25,3 @@
     按比例2：1插入，bba，bab(
     b21：a4
     bbabb,bbabb,bbabb,bbabb,b,
-
-        # 如果floor比较多,先插入floor，再插入ceil.以ceil为基数
-        if y_flag == DecimalRoundingRule.FLOOR:
-            for _ in range(group_y):
-                for _ in range(y_ratio):
-                    #  restore
-                    start_y = 0
-                    end_y = self._window.get_x_resolution()
-
-                    end_y, start_y = self.draw_x_dir(end_x, end_y, group_x, image, start_x, start_y, x_ceil_var, x_flag,
-                                                     x_floor_var, x_mod, x_ratio)
-                    # 如果floor比较多,先插入floor，再插入ceil.以ceil为基数
-                    cv2.rectangle(image, (start_x, start_y), (end_x, end_y), (255, 255, 255), -1)
-                    start_x = start_x + y_ceil_var
-                    end_x = end_x + y_ceil_var
-                # 补足最后一个 为 floor的，前面多加，这里要减去
-                cv2.rectangle(image, (start_x, start_y), (end_x, end_y), (255, 255, 255), -1)
-                start_x = start_x + y_floor_var
-                end_x = end_x + y_floor_var
-
-            for _ in range(y_mod):
-                cv2.rectangle(image, (start_x, start_y), (end_x, end_y), (255, 255, 255), -1)
-                start_x = start_x + y_floor_var
-                end_x = end_x + y_floor_var
-
