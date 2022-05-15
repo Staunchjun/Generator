@@ -5,12 +5,18 @@ import numpy as np
 import sympy
 
 from resolution import Resolution, init_resolution
-from common import mm_to_resolution, singleton, DecimalRoundingRule, cal_ratio_and_mod, GroupInfo
+from common import mm_to_resolution, singleton, DecimalRoundingRule, cal_ratio_and_mod, PermutationInfo
 from window import Window
 from functools import wraps
 
 
 def init_window(f):
+    """
+    window类的依赖注入包装方法
+    :param f: 注入对象函数
+    :return:
+    """
+
     @wraps(f)
     def decorated(*args, **kwargs):
         if not kwargs.get('window'):
@@ -138,15 +144,17 @@ class Graph:
         self._window.__str__()
 
     def write_base_graph(self):
+        """
+        生成基础图像
+        :return: 图像
+        """
         # np.zeros行列
         image = np.zeros((self.get_y_resolution(), self.get_x_resolution(), 1), np.uint8)
         x_floor_num, x_floor_var, x_ceil_num, x_ceil_var = self.window_distribute_x()
         y_floor_num, y_floor_var, y_ceil_num, y_ceil_var = self.window_distribute_y()
 
-        group_info_x: GroupInfo = cal_ratio_and_mod(x_ceil_num, x_floor_num)
-        group_info_y: GroupInfo = cal_ratio_and_mod(y_ceil_num, y_floor_num)
-        self.print_group_info(group_info_x)
-        self.print_group_info(group_info_y)
+        group_info_x: PermutationInfo = cal_ratio_and_mod(x_ceil_num, x_floor_num)
+        group_info_y: PermutationInfo = cal_ratio_and_mod(y_ceil_num, y_floor_num)
 
         # 设定计算的临时变量
         high_num_y, high_var_y, low_num_y, low_var_y = self.set_cal_num(group_info_y, y_ceil_num, y_floor_num,
@@ -168,41 +176,41 @@ class Graph:
                 x_1 = int(math.ceil(group_info_y.ratio_a / 2))
                 y_1 = int(group_info_y.ratio_a - x_1)
                 for _ in range(x_1):
-                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                     start_y = start_y + high_var_y
                     end_y = end_y + high_var_y
-                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                 start_y = start_y + low_var_y
                 end_y = end_y + low_var_y
                 for _ in range(y_1):
-                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                     start_y = start_y + high_var_y
                     end_y = end_y + high_var_y
-                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                 start_y = start_y + low_var_y
                 end_y = end_y + low_var_y
             else:
                 for _ in range(group_info_y.ratio_a):
-                    self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                    self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                     start_y = start_y + high_var_y
                     end_y = end_y + high_var_y
-                self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+                self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
                 start_y = start_y + low_var_y
                 end_y = end_y + low_var_y
         for _ in range(group_info_y.mod_a):
-            self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+            self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
             start_y = start_y + high_var_y
             end_y = end_y + high_var_y
         for _ in range(group_info_y.mod_b):
-            self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+            self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
             start_y = start_y + low_var_y
             end_y = end_y + low_var_y
 
         # 补充最后多减去的一列
-        self.draw_y(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+        self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
         cv2.imwrite("base_pic.bmp", image)
 
-    def draw_y(self, end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y):
+    def _draw_x(self, end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y):
         #  restore
         start_x = 0
         end_x = self._window.get_x_resolution()
@@ -247,21 +255,17 @@ class Graph:
         # 补充最后多减去的一列
         cv2.rectangle(image, (start_x, start_y), (end_x - 1, end_y - 1), (255, 255, 255), -1)
 
-    def print_group_info(self, group_info_x):
-        print("总共多少组")
-        print(group_info_x.group_num)
-        print("a的比例")
-        print(group_info_x.ratio_a)
-        print("a的余数")
-        print(group_info_x.mod_a)
-        print("b的比例")
-        print(group_info_x.ratio_b)
-        print("b的余数")
-        print(group_info_x.mod_b)
-        print("规则")
-        print(group_info_x.rule)
-
-    def set_cal_num(self, group_info: GroupInfo, ceil_num: int, floor_num: int, ceil_var: int, floor_var: int) -> [int,                                                                                         int]:
+    def set_cal_num(self, group_info: PermutationInfo, ceil_num: int, floor_num: int, ceil_var: int,
+                    floor_var: int) -> [int, int]:
+        """
+        根据规则分配最高值和最低值
+        :param group_info:
+        :param ceil_num:
+        :param floor_num:
+        :param ceil_var:
+        :param floor_var:
+        :return:
+        """
         if group_info.rule == DecimalRoundingRule.FLOOR:
             high_num = floor_num
             high_var = floor_var

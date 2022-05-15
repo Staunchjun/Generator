@@ -44,5 +44,3 @@ class Window:
         print("x_resolution: ", self.get_x_resolution())
         print("y_resolution: ", self.get_y_resolution())
         self._resolution.__str__()
-
-

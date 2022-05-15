@@ -35,21 +35,10 @@ def mm_to_resolution(mm: float, resolution: float, opt: DecimalRoundingRule = De
     return math.floor(ret)
 
 
-def cal_ratio_and_mod_bak(ceil_num: int, floor_num: int) -> [int, int, DecimalRoundingRule]:
-    # 记录占多数的一方
-    rule: DecimalRoundingRule
-    if floor_num > ceil_num:
-        ratio = math.floor(floor_num / ceil_num)
-        mod = floor_num % ceil_num
-        rule = DecimalRoundingRule.FLOOR
-    else:
-        ratio = math.floor(ceil_num / floor_num)
-        mod = ceil_num % floor_num
-        rule = DecimalRoundingRule.CEIL
-    return ratio, mod, rule
-
-
-class GroupInfo:
+class PermutationInfo:
+    """
+    用来保存排列信息的结构体
+    """
     rule: DecimalRoundingRule
     ratio_a: int
     mod_a: int
@@ -58,7 +47,13 @@ class GroupInfo:
     group_num: int
 
 
-def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [GroupInfo]:
+def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [PermutationInfo]:
+    """
+    计算排列信息，根据两数数量，计算均匀分配的比例
+    :param ceil_num: 下限数值
+    :param floor_num: 上限数值
+    :return:存排列信息的结构体
+    """
     # 设定计算的临时变量
     high_num: int
     low_num: int
@@ -122,7 +117,7 @@ def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [GroupInfo]:
     cnt_low = cnt_low - ratio_b
     group -= 1
 
-    group_info = GroupInfo()
+    group_info = PermutationInfo()
     group_info.group_num = int(group)
     group_info.mod_a = int(high_num - cnt_high)
     group_info.mod_b = int(low_num - cnt_low)
@@ -133,6 +128,11 @@ def cal_ratio_and_mod(ceil_num: int, floor_num: int) -> [GroupInfo]:
 
 
 def singleton(cls_object):
+    """
+    单例包装函数
+    :param cls_object: 单例对象
+    :return: 单例对象
+    """
     def inner(*args, **kwargs):
         if not hasattr(cls_object, "ins"):
             ins_object = cls_object(*args, **kwargs)
