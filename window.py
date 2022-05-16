@@ -1,8 +1,27 @@
-from resolution import Resolution, init_resolution
-from common import mm_to_resolution, singleton
+from functools import wraps
+
+from conf import inject_window_conf, WindowConf
+from resolution import Resolution, inject_resolution
+from common import mm_to_resolution, resolution_to_mm
 
 
-@singleton
+def inject_window(f):
+    """
+    window类的依赖注入包装方法
+    :param f: 注入对象函数
+    :return:
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not kwargs.get('window'):
+            # todo load window conf
+            kwargs['window'] = Window()
+        f(*args, **kwargs)
+
+    return decorated
+
+
 class Window:
     """
     开窗设置类
@@ -17,10 +36,20 @@ class Window:
     def y(self) -> float:
         return self._size_y
 
-    @init_resolution
-    def __init__(self, x: float, y: float, resolution: Resolution = None):
-        self._size_x = x
-        self._size_y = y
+    # @init_resolution
+    # def __init__(self, x: float, y: float, resolution: Resolution = None):
+    #     self._size_x = x
+    #     self._size_y = y
+    #     self._resolution = resolution
+
+    @inject_window_conf
+    @inject_resolution
+    def __init__(self, conf: WindowConf = None, resolution: Resolution = None):
+        self._size_x = resolution_to_mm(conf.window_size_x, resolution.x)
+        self._size_y = resolution_to_mm(conf.window_size_y, resolution.y)
+        print("==================================================")
+        print(self._size_x)
+        print(self._size_y)
         self._resolution = resolution
 
     def get_x_resolution(self) -> int:

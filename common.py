@@ -35,6 +35,19 @@ def mm_to_resolution(mm: float, resolution: float, opt: DecimalRoundingRule = De
     return math.floor(ret)
 
 
+def resolution_to_mm(ret: float, resolution: float) -> Union[int, float]:
+    """
+       参考计算公式： 0.72 / 25.4 * 1451.43 = 41.14(向下取整)
+    :param ret:
+    :param mm:
+    :param resolution:
+    :return:
+    """
+    in_unit_mm: float = 25.4
+    mm: float = ret / resolution * in_unit_mm
+    return round(mm, 2)
+
+
 class PermutationInfo:
     """
     用来保存排列信息的结构体
@@ -133,6 +146,7 @@ def singleton(cls_object):
     :param cls_object: 单例对象
     :return: 单例对象
     """
+
     def inner(*args, **kwargs):
         if not hasattr(cls_object, "ins"):
             ins_object = cls_object(*args, **kwargs)

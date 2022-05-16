@@ -4,52 +4,35 @@ import cv2
 import numpy as np
 import sympy
 
-from resolution import Resolution, init_resolution
-from common import mm_to_resolution, singleton, DecimalRoundingRule, cal_ratio_and_mod, PermutationInfo
-from window import Window
-from functools import wraps
+from common import mm_to_resolution, DecimalRoundingRule, cal_ratio_and_mod, PermutationInfo
+from conf import inject_graph_conf, GraphConf
+from resolution import Resolution, inject_resolution
+from window import Window, inject_window
 
 
-def init_window(f):
-    """
-    window类的依赖注入包装方法
-    :param f: 注入对象函数
-    :return:
-    """
-
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not kwargs.get('window'):
-            # todo load window conf
-            kwargs['window'] = Window(0.72, 0.41)
-        f(*args, **kwargs)
-
-    return decorated
-
-
-@singleton
 class Graph:
     """
         生成图
         x,y默认为mm
     """
 
-    @init_window
-    @init_resolution
-    def __init__(self, window_x_num: int, window_y_num: int, window_space_mm: float, window: Window = None,
-                 resolution: Resolution = None):
-        self._window_x_num = window_x_num
-        self._window_y_num = window_y_num
-        self._window_space = window_space_mm
+    @inject_graph_conf
+    @inject_window
+    @inject_resolution
+    def __init__(self, conf: GraphConf = None, window: Window = None, resolution: Resolution = None):
+        self._window_x_num = conf.window_num_x
+        self._window_y_num = conf.window_num_y
+        self._window_space_x = conf.window_space_x
+        self._window_space_y = conf.window_space_y
         self._window = window
         self._resolution = resolution
-        self._size_x: float = (self._window_x_num - 1) * self._window_space + self._window.x
-        self._size_y: float = (self._window_y_num - 1) * self._window_space + self._window.y
+        self._size_x: float = (self._window_x_num - 1) * self._window_space_x + self._window.x
+        self._size_y: float = (self._window_y_num - 1) * self._window_space_y + self._window.y
 
     def window_distribute_x(self) -> [int, int]:
-        window_space_x_resolution_floor = mm_to_resolution(self._window_space, self._resolution.x,
+        window_space_x_resolution_floor = mm_to_resolution(self._window_space_x, self._resolution.x,
                                                            DecimalRoundingRule.FLOOR)
-        window_space_x_resolution_ceil = mm_to_resolution(self._window_space, self._resolution.x,
+        window_space_x_resolution_ceil = mm_to_resolution(self._window_space_x, self._resolution.x,
                                                           DecimalRoundingRule.CEIL)
         x_floor_num, x_ceil_num = self.window_distribute_formula(window_space_x_resolution_floor,
                                                                  window_space_x_resolution_ceil,
@@ -63,9 +46,9 @@ class Graph:
         return x_floor_num, window_space_x_resolution_floor, x_ceil_num, window_space_x_resolution_ceil
 
     def window_distribute_y(self) -> [int, int]:
-        window_space_y_resolution_floor = mm_to_resolution(self._window_space, self._resolution.y,
+        window_space_y_resolution_floor = mm_to_resolution(self._window_space_y, self._resolution.y,
                                                            DecimalRoundingRule.FLOOR)
-        window_space_y_resolution_ceil = mm_to_resolution(self._window_space, self._resolution.y,
+        window_space_y_resolution_ceil = mm_to_resolution(self._window_space_y, self._resolution.y,
                                                           DecimalRoundingRule.CEIL)
         y_floor_num, y_ceil_num = self.window_distribute_formula(window_space_y_resolution_floor,
                                                                  window_space_y_resolution_ceil,

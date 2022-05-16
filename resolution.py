@@ -1,19 +1,18 @@
-from common import singleton
 from functools import wraps
 
+from conf import ResolutionConf, inject_resolution_conf
 
-def init_resolution(f):
+
+def inject_resolution(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if not kwargs.get('resolution'):
-            # todo load resolution conf
-            kwargs['resolution'] = Resolution(1451.43, 1441.12)
+            kwargs['resolution'] = Resolution()
         f(*args, **kwargs)
 
     return decorated
 
 
-@singleton
 class Resolution:
     """
     分辨率设置类
@@ -27,9 +26,10 @@ class Resolution:
     def y(self) -> float:
         return self._y
 
-    def __init__(self, x: float, y: float):
-        self._x = x
-        self._y = y
+    @inject_resolution_conf
+    def __init__(self, conf: ResolutionConf = None):
+        self._x = conf.resolution_x
+        self._y = conf.resolution_y
 
     def __str__(self):
         print("======Print resolution var:======")
