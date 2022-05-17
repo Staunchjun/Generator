@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>363</width>
+    <height>348</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>361</width>
+      <height>357</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="1">
+      <layout class="QGridLayout" name="gridLayout_4">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMaximumSize</enum>
+       </property>
+       <property name="horizontalSpacing">
+        <number>20</number>
+       </property>
+       <item row="5" column="0">
+        <widget class="QLineEdit" name="window_space_x_edit"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLineEdit" name="resolution_y_edit"/>
+       </item>
+       <item row="12" column="1">
+        <widget class="QLabel" name="padding_y_label">
+         <property name="text">
+          <string>黑边框度，单位:mm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLineEdit" name="window_space_y_edit"/>
+       </item>
+       <item row="13" column="0" colspan="2">
+        <widget class="QPushButton" name="generator_button">
+         <property name="text">
+          <string>生成打印图档</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLineEdit" name="unit_y_edit"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLineEdit" name="unit_x_edit"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="resolution_y_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>111</width>
+           <height>111</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>打印分辨率，单位DPI</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QLabel" name="padding_x_label">
+         <property name="text">
+          <string>黑边宽度，单位：mm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QLineEdit" name="padding_y_edit"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="unit_x_label">
+         <property name="text">
+          <string>单位：um</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLineEdit" name="window_x_num_edit"/>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLabel" name="window_x_num_label">
+         <property name="text">
+          <string>开窗x数目</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLineEdit" name="window_x_size_edit"/>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLineEdit" name="padding_x_edit"/>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLineEdit" name="window_y_size_edit"/>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLabel" name="window_y_num_label">
+         <property name="text">
+          <string>开窗y数目</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="unit_y_label">
+         <property name="text">
+          <string>单位：um</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="window_space_y_label">
+         <property name="text">
+          <string>Pitch，单位：um</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QLabel" name="window_y_size_label">
+         <property name="text">
+          <string>开窗尺寸，单位：mm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QLabel" name="window_x_size_label">
+         <property name="text">
+          <string>开窗尺寸，单位：mm</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLineEdit" name="window_y_num_edit"/>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLabel" name="window_space_x_label">
+         <property name="text">
+          <string>Pitch，单位：um</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="resolution_x_edit"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="resolution_x_label">
+         <property name="text">
+          <string>打印分辨率，单位DPI</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>resolution_x_edit</tabstop>
+  <tabstop>resolution_y_edit</tabstop>
+  <tabstop>unit_x_edit</tabstop>
+  <tabstop>unit_y_edit</tabstop>
+  <tabstop>window_space_x_edit</tabstop>
+  <tabstop>window_space_y_edit</tabstop>
+  <tabstop>window_x_num_edit</tabstop>
+  <tabstop>window_y_num_edit</tabstop>
+  <tabstop>window_x_size_edit</tabstop>
+  <tabstop>window_y_size_edit</tabstop>
+  <tabstop>padding_x_edit</tabstop>
+  <tabstop>padding_y_edit</tabstop>
+  <tabstop>generator_button</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

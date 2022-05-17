@@ -1,14 +1,14 @@
-from PIL import Image
+import sys
 
-from graph import Graph
-from resolution import Resolution
+from PyQt5 import QtWidgets
+
+from input_data import Ui_MainWindow
 
 if __name__ == '__main__':
-    graph = Graph()
-    graph.__str__()
-    graph.write_base_graph()
+    app = QtWidgets.QApplication(sys.argv)
+    window = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
 
-    image_file = Image.open("base_pic.bmp")  # open colour image
-    image_file = image_file.convert('1')  # convert image to black and white
-    image_file.save('base_pic.bmp')
-#
+    ui.setupUi(window)
+    window.show()
+    sys.exit(app.exec_())
