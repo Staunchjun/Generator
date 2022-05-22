@@ -82,8 +82,8 @@ class WindowConf:
         self._window_size_y = a
 
     def __init__(self):
-        self._window_size_x = 30
-        self._window_size_y = 23
+        self._window_size_x = 0.72
+        self._window_size_y = 0.41
 
 
 @singleton

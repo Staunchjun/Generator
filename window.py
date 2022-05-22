@@ -2,7 +2,7 @@ from functools import wraps
 
 from conf import inject_window_conf, WindowConf
 from resolution import Resolution, inject_resolution
-from common import mm_to_resolution, resolution_to_mm
+from common import mm_to_resolution
 
 
 def inject_window(f):
@@ -36,20 +36,11 @@ class Window:
     def y(self) -> float:
         return self._size_y
 
-    # @init_resolution
-    # def __init__(self, x: float, y: float, resolution: Resolution = None):
-    #     self._size_x = x
-    #     self._size_y = y
-    #     self._resolution = resolution
-
     @inject_window_conf
     @inject_resolution
     def __init__(self, conf: WindowConf = None, resolution: Resolution = None):
-        self._size_x = resolution_to_mm(conf.window_size_x, resolution.x)
-        self._size_y = resolution_to_mm(conf.window_size_y, resolution.y)
-        print("==================================================")
-        print(self._size_x)
-        print(self._size_y)
+        self._size_x = conf.window_size_x
+        self._size_y = conf.window_size_y
         self._resolution = resolution
 
     def get_x_resolution(self) -> int:

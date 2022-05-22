@@ -35,19 +35,6 @@ def mm_to_resolution(mm: float, resolution: float, opt: DecimalRoundingRule = De
     return math.floor(ret)
 
 
-def resolution_to_mm(ret: float, resolution: float) -> Union[int, float]:
-    """
-       参考计算公式： 0.72 / 25.4 * 1451.43 = 41.14(向下取整)
-    :param ret:
-    :param mm:
-    :param resolution:
-    :return:
-    """
-    in_unit_mm: float = 25.4
-    mm: float = ret / resolution * in_unit_mm
-    return round(mm, 2)
-
-
 class PermutationInfo:
     """
     用来保存排列信息的结构体

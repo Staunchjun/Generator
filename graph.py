@@ -28,6 +28,8 @@ class Graph:
         self._resolution = resolution
         self._size_x: float = (self._window_x_num - 1) * self._window_space_x + self._window.x
         self._size_y: float = (self._window_y_num - 1) * self._window_space_y + self._window.y
+        self._padding_x: float = conf.padding_x
+        self._padding_y: float = conf.padding_y
 
     def window_distribute_x(self) -> [int, int]:
         window_space_x_resolution_floor = mm_to_resolution(self._window_space_x, self._resolution.x,
@@ -192,7 +194,10 @@ class Graph:
         # 补充最后多减去的一列
         self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
 
-        image = cv2.copyMakeBorder(image, 20 ,20, 20, 20, cv2.BORDER_CONSTANT)
+        # 补充边框
+        padding_x = mm_to_resolution(self._padding_x, self._resolution.x, DecimalRoundingRule.ROUND)
+        padding_y = mm_to_resolution(self._padding_y, self._resolution.y, DecimalRoundingRule.ROUND)
+        image = cv2.copyMakeBorder(image, padding_y, padding_y, padding_x, padding_x, cv2.BORDER_CONSTANT)
         cv2.imwrite("base_pic.bmp", image)
 
     def _draw_x(self, end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y):

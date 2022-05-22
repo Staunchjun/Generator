@@ -17,7 +17,7 @@ from graph import Graph
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("Generator Tool")
         MainWindow.resize(363, 348)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -144,8 +144,8 @@ class Ui_MainWindow(object):
         self.window_y_num_label.setText(_translate("MainWindow", "开窗y数目"))
         self.unit_y_label.setText(_translate("MainWindow", "单位：um"))
         self.window_space_y_label.setText(_translate("MainWindow", "Pitch，单位：um"))
-        self.window_y_size_label.setText(_translate("MainWindow", "开窗尺寸，单位：mm"))
-        self.window_x_size_label.setText(_translate("MainWindow", "开窗尺寸，单位：mm"))
+        self.window_y_size_label.setText(_translate("MainWindow", "开窗尺寸，单位：um"))
+        self.window_x_size_label.setText(_translate("MainWindow", "开窗尺寸，单位：um"))
         self.window_space_x_label.setText(_translate("MainWindow", "Pitch，单位：um"))
         self.resolution_x_label.setText(_translate("MainWindow", "打印分辨率，单位DPI"))
 
@@ -158,8 +158,8 @@ class Ui_MainWindow(object):
         self.window_space_y_edit.setText(str(1.5625))
         self.window_x_num_edit.setText(str(108))
         self.window_y_num_edit.setText(str(96))
-        self.window_x_size_edit.setText(str(30))
-        self.window_y_size_edit.setText(str(23))
+        self.window_x_size_edit.setText(str(0.72))
+        self.window_y_size_edit.setText(str(0.41))
         self.padding_x_edit.setText(str(1))
         self.padding_y_edit.setText(str(1))
 
@@ -194,8 +194,8 @@ class Ui_MainWindow(object):
         resolution_conf.resolution_y = float(self.resolution_y_edit.text())
 
         window_conf = WindowConf()
-        window_conf.window_size_x = int(self.window_x_size_edit.text())
-        window_conf.window_size_y = int(self.window_y_size_edit.text())
+        window_conf.window_size_x = float(self.window_x_size_edit.text())
+        window_conf.window_size_y = float(self.window_y_size_edit.text())
 
         graph_conf = GraphConf()
         graph_conf.window_space_x = float(self.window_space_x_edit.text())
