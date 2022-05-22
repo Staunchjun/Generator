@@ -1,7 +1,9 @@
 import sys
 
+from PIL import Image
 from PyQt5 import QtWidgets
 
+from graph import Graph
 from input_data import Ui_MainWindow
 
 if __name__ == '__main__':

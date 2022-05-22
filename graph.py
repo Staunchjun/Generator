@@ -191,6 +191,8 @@ class Graph:
 
         # 补充最后多减去的一列
         self._draw_x(end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y)
+
+        image = cv2.copyMakeBorder(image, 20 ,20, 20, 20, cv2.BORDER_CONSTANT)
         cv2.imwrite("base_pic.bmp", image)
 
     def _draw_x(self, end_y, group_info_x, group_info_y, high_var_x, image, low_var_x, start_y):
