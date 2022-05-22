@@ -165,7 +165,7 @@ class Ui_MainWindow(object):
 
     def set_validator(self):
         double_validator = QDoubleValidator()
-        double_validator.setBottom(1)
+        double_validator.setBottom(0.01)
         double_validator.setNotation(QDoubleValidator.StandardNotation)
         double_validator.setDecimals(2)
 
@@ -182,8 +182,8 @@ class Ui_MainWindow(object):
         self.window_y_num_edit.setValidator(int_validator)
         self.window_x_size_edit.setValidator(double_validator)
         self.window_y_size_edit.setValidator(double_validator)
-        self.padding_x_edit.setValidator(int_validator)
-        self.padding_y_edit.setValidator(int_validator)
+        self.padding_x_edit.setValidator(double_validator)
+        self.padding_y_edit.setValidator(double_validator)
 
     def clicked(self):
         # 点击后鼠标变为不可点击状态
